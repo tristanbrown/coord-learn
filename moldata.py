@@ -1,5 +1,6 @@
 from ccdc import io
 import pandas as pd
+import time
 
 csd_reader = io.EntryReader('CSD')
 
@@ -7,7 +8,7 @@ def mol_reader(n):
     """Calls the nth entry in the CSD as a molecule object."""
     entry = csd_reader[n]
     return csd_reader.molecule(entry.identifier)
-
+    
 class Molset():
     """
     __init__:
@@ -47,10 +48,16 @@ class Molset():
     
     def populatexyz(self):
         return {id: self.xyz(self.mols[id]) for id in self.mols}
-
-dict1 = {'A':1, 'B':2, 'C':3}
-dict2 = {key: 5*dict1[key] for key in dict1}
-print(dict2)
+    
+    def center(self):
+        for label in self.mols:
+            #try:
+                mol = self.mols[label]
+                mol.translate([round(-1 * a, 4)
+                                for a in mol.centre_of_geometry()])
+            # except RuntimeError:
+                # pass
+        self.xyzset = self.populatexyz()
 
         
 examples = [csd_reader[i].identifier for i in range(11)]
@@ -59,8 +66,27 @@ print(examples)
 trainset = Molset(['AABHTZ', 'ABEBUF'])
 print(trainset.mols)
 print(trainset.xyzset)
+trainset.center()
+print(trainset.xyzset)
+start = time.time()
 trainset2 = Molset(10)
+end = time.time()
+time10 = end - start
+print(trainset2.xyzset)
+trainset2.center()
 print(trainset2.xyzset)
 
+# start = time.time()
+# trainset2 = Molset(100)
+# end = time.time()
+# time100 = end - start
 
+# start = time.time()
+# trainset2 = Molset(1000)
+# end = time.time()
+# time1000 = end - start
+
+# print(time10)
+# print(time100)
+# print(time1000)
 
