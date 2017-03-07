@@ -8,6 +8,18 @@ def mol_reader(n):
     """Calls the nth entry in the CSD as a molecule object."""
     entry = csd_reader[n]
     return csd_reader.molecule(entry.identifier)
+
+class Mol():
+    """
+    A wrapper class for csd molecule objects. 
+    """
+    def __init__(self, index):
+        self._molecule = csd_reader.molecule(index)
+    
+    def __getattr__(self, attr):
+        if attr in self.__dict__:
+            return getattr(self, attr)
+        return getattr(self._molecule, attr)
     
 class Molset():
     """
@@ -72,6 +84,7 @@ class Molset():
                                 for a in moltrunc.centre_of_geometry()])
             except ValueError:
                 pass
+    
 
         
 examples = [csd_reader[i].identifier for i in range(11)]
@@ -83,6 +96,9 @@ print(trainset.xyzset)
 trainset2 = Molset(10)
 print(trainset2.xyzset)
 
+A = Mol('AABHTZ')
+print(A)
+print(A.atoms)
 
 # #Timing Tests
 # start = time.time()
