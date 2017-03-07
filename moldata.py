@@ -1,7 +1,9 @@
 from ccdc import io
 import pandas as pd
 import time
+import numpy as np
 
+np.random.seed(901)
 csd_reader = io.EntryReader('CSD')
 
 def mol_reader(n):
@@ -72,17 +74,17 @@ class Mol():
         except TypeError:
             return [None, None, None]
 
-A = Mol('AABHTZ')
-print(A)
-print(A.xyz())
+# A = Mol('AABHTZ')
+# print(A)
+# print(A.xyz())
 
-B = Mol(1)
-print(B)
-print(B.xyz())
-print(B.check_3d())
-B.center()
-print(B.xyz())
-print(B.check_3d())
+# B = Mol(1)
+# print(B)
+# print(B.xyz())
+# print(B.check_3d())
+# B.center()
+# print(B.xyz())
+# print(B.check_3d())
                 
 class Molset():
     """
@@ -92,73 +94,53 @@ class Molset():
     containing a subset of the molecule objects in the CSD. 
     
     """
-    def __init__(self, index=[]):
-        self.mols = self.populate_mols(index)
-        self.center_all()
+    def __init__(self, ids=[]):
+        self.mols = self.populate_mols(ids)
+        #self.center_all()
         self.xyzset = self.populate_xyz()
+        self.cleanxyz = self.centered_xyz()
     
-    def populate_mols(self, index):
-        try: 
-            return {label: csd_reader.molecule(label) for label in index}
-        except TypeError:
-            return {csd_reader[m].identifier: 
-                            mol_reader(m) for m in range(index)}
-    
-    def xyz(self, mol):
-        """Takes a molecule object and returns a dataframe of its atomic coordinates in
-        a format similar to .xyz files.
-        """
-        atoms = mol.atoms
-        size = len(atoms)
-        coords = [[atom.atomic_symbol] + 
-                    self.coord_format(atom.coordinates)
-                        for atom in atoms]
-            #use atom.label to get the symbol and index number together
-        return pd.DataFrame(coords, columns=['Element', 'x', 'y', 'z'])
-    
-    def coord_format(self, coord):
-        """Rounds coordinates or deals with missing data."""
+    def populate_mols(self, ids):
+        """Populates self.mols using a list of string identifiers, or a list of
+        numerical indices. If instead a number n is given directly, n fully-3D
+        entries are chosen from the CSD to populate self.mols."""
         try:
-            return [round(a, 4) for a in coord]
+            mols = {}
+            for id in ids:
+                amol = Mol(id)
+                mols[amol.identifier] = amol
         except TypeError:
-            return [None, None, None]
+            mols = self.random_populate(ids)
+        return mols
+    
+    def random_populate(self, count):
+        mols = {}
+        while len(mols) < count:
+            id = np.random.randint(0, len(csd_reader))
+            amol = Mol(id)
+            if amol.check_3d():
+                mols[amol.identifier] = amol
+        return mols
     
     def populate_xyz(self):
-        return {id: self.xyz(self.mols[id]) for id in self.mols}
-    
-    def remove_unlocated(self, mol):
-        """Removes all atoms in a molecule that are missing coordinates."""
-        for atom in mol.atoms:
-            if atom.coordinates is None:
-                mol.remove_atom(atom)
-    
-    def remove_all_unlocated(self):
-        for label in self.mols:
-            self.remove_unlocated(self.mols[label])
-        self.xyzset = self.populate_xyz()
+        return {id: self.mols[id].xyz() for id in self.mols}
     
     def center_all(self):
-        for label in self.mols:
-            try:
-                mol = self.mols[label]
-                moltrunc = mol.copy()
-                self.remove_unlocated(moltrunc)
-                mol.translate([round(-1 * a, 4)
-                                for a in moltrunc.centre_of_geometry()])
-            except ValueError:
-                pass
+        for id in self.mols:
+            self.mols[id].center()
     
-
         
-# examples = [csd_reader[i].identifier for i in range(11)]
-# print(examples)
+examples = [csd_reader[i].identifier for i in range(11)]
+print(examples)
                         
-# trainset = Molset(['AABHTZ', 'ABEBUF'])
-# print(trainset.mols)
-# print(trainset.xyzset)
-# trainset2 = Molset(10)
-# print(trainset2.xyzset)
-
+trainset = Molset(['AABHTZ', 'ABEBUF'])
+print(trainset.mols)
+print(trainset.xyzset)
+trainset2 = Molset([10])
+print(trainset2.xyzset)
+trainset3 = Molset(10)
+print(trainset3.xyzset)
+print(len(trainset3.xyzset))
 
 
 # #Timing Tests
