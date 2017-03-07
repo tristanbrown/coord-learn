@@ -21,6 +21,25 @@ class Mol():
             return getattr(self, attr)
         return getattr(self._molecule, attr)
     
+    def xyz(self):
+        """Returns a dataframe of the molecule's atomic coordinates in
+        a format similar to .xyz files.
+        """
+        atoms = self.atoms
+        size = len(atoms)
+        coords = [[atom.atomic_symbol] + 
+                    self.coord_format(atom.coordinates)
+                        for atom in atoms]
+            #use atom.label to get the symbol and index number together
+        return pd.DataFrame(coords, columns=['Element', 'x', 'y', 'z'])
+    
+    def coord_format(self, coord):
+        """Rounds coordinates or deals with missing data."""
+        try:
+            return [round(a, 4) for a in coord]
+        except TypeError:
+            return [None, None, None]
+    
 class Molset():
     """
     __init__:
@@ -98,7 +117,7 @@ print(trainset2.xyzset)
 
 A = Mol('AABHTZ')
 print(A)
-print(A.atoms)
+print(A.xyz())
 
 # #Timing Tests
 # start = time.time()
