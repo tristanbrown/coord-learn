@@ -32,14 +32,6 @@ class Mol():
         except NotImplementedError:
             return mol_reader(index)
     
-    def check_3d(self):
-        """Checks if all 3D coordinates are available, and returns true if they
-        are, false if they are not."""
-        for atom in self.atoms:
-            if atom.coordinates is None:
-                return False
-        return True
-    
     def remove_unlocated(self):
         """Removes all atoms in a molecule that are missing coordinates."""
         for atom in self.atoms:
@@ -73,18 +65,29 @@ class Mol():
             return [round(a, 4) for a in coord]
         except TypeError:
             return [None, None, None]
+    
+    def center_elements(self, elem):
+        """Takes an element type and returns a list of dataframes, representing
+        the same molecule centered on each instance of that element.
+        The molecule is represented entirely in terms of radii from the central
+        atom, and the atoms are ordered by these distances, smallest to largest.
+        """
+        
 
-# A = Mol('AABHTZ')
-# print(A)
-# print(A.xyz())
+A = Mol('AABHTZ')
+print(A)
+print(A.xyz())
 
-# B = Mol(1)
-# print(B)
-# print(B.xyz())
-# print(B.check_3d())
-# B.center()
-# print(B.xyz())
-# print(B.check_3d())
+B = Mol(1)
+print(B)
+print(B.xyz())
+print(A.all_atoms_have_sites)
+print(B.all_atoms_have_sites)
+B.center()
+print(B.xyz())
+print(B.all_atoms_have_sites)
+
+
                 
 class Molset():
     """
@@ -97,8 +100,8 @@ class Molset():
     def __init__(self, ids=[]):
         self.mols = self.populate_mols(ids)
         #self.center_all()
-        self.xyzset = self.populate_xyz()
-        self.cleanxyz = self.centered_xyz()
+        #self.xyzset = self.populate_xyz()
+        self.xyzset = self.centered_xyz()
     
     def populate_mols(self, ids):
         """Populates self.mols using a list of string identifiers, or a list of
@@ -118,29 +121,37 @@ class Molset():
         while len(mols) < count:
             id = np.random.randint(0, len(csd_reader))
             amol = Mol(id)
-            if amol.check_3d():
+            if amol.all_atoms_have_sites:
                 mols[amol.identifier] = amol
         return mols
+    
+    def center_all(self):
+        """Use to re-center all Mols."""
+        for id in self.mols:
+            self.mols[id].center()
     
     def populate_xyz(self):
         return {id: self.mols[id].xyz() for id in self.mols}
     
-    def center_all(self):
+    def centered_xyz(self):
+        molxyz = {}
         for id in self.mols:
             self.mols[id].center()
+            molxyz[id] = self.mols[id].xyz()
+        return molxyz
     
         
-examples = [csd_reader[i].identifier for i in range(11)]
-print(examples)
+# examples = [csd_reader[i].identifier for i in range(11)]
+# print(examples)
                         
-trainset = Molset(['AABHTZ', 'ABEBUF'])
-print(trainset.mols)
-print(trainset.xyzset)
-trainset2 = Molset([10])
-print(trainset2.xyzset)
-trainset3 = Molset(10)
-print(trainset3.xyzset)
-print(len(trainset3.xyzset))
+# trainset = Molset(['AABHTZ', 'ABEBUF'])
+# print(trainset.mols)
+# print(trainset.xyzset)
+# trainset2 = Molset([10])
+# print(trainset2.xyzset)
+# trainset3 = Molset(10)
+# print(trainset3.xyzset)
+# print(len(trainset3.xyzset))
 
 
 # #Timing Tests
