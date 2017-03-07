@@ -14,12 +14,44 @@ class Mol():
     A wrapper class for csd molecule objects. 
     """
     def __init__(self, index):
-        self._molecule = csd_reader.molecule(index)
+        self._molecule = self.get_mol(index)
     
     def __getattr__(self, attr):
+        """Wraps this class object around a CSD molecule object."""
         if attr in self.__dict__:
             return getattr(self, attr)
         return getattr(self._molecule, attr)
+    
+    def get_mol(self, index):
+        """Acquires a molecule object from the CSD, using either the string 
+        label for the structure, or its numerical index."""
+        try: 
+            return csd_reader.molecule(index)
+        except NotImplementedError:
+            return mol_reader(index)
+    
+    def check_3d(self):
+        """Checks if all 3D coordinates are available, and returns true if they
+        are, false if they are not."""
+        for atom in self.atoms:
+            if atom.coordinates is None:
+                return False
+        return True
+    
+    def remove_unlocated(self):
+        """Removes all atoms in a molecule that are missing coordinates."""
+        for atom in self.atoms:
+            if atom.coordinates is None:
+                self.remove_atom(atom)
+    
+    def center(self):
+        """Centers the molecule, eliminating unlocated atoms."""
+        try:
+            self.remove_unlocated()
+            self.translate([round(-1 * a, 4)
+                            for a in self.centre_of_geometry()])
+        except ValueError:
+            pass
     
     def xyz(self):
         """Returns a dataframe of the molecule's atomic coordinates in
@@ -39,7 +71,19 @@ class Mol():
             return [round(a, 4) for a in coord]
         except TypeError:
             return [None, None, None]
-    
+
+A = Mol('AABHTZ')
+print(A)
+print(A.xyz())
+
+B = Mol(1)
+print(B)
+print(B.xyz())
+print(B.check_3d())
+B.center()
+print(B.xyz())
+print(B.check_3d())
+                
 class Molset():
     """
     __init__:
@@ -106,18 +150,16 @@ class Molset():
     
 
         
-examples = [csd_reader[i].identifier for i in range(11)]
-print(examples)
+# examples = [csd_reader[i].identifier for i in range(11)]
+# print(examples)
                         
-trainset = Molset(['AABHTZ', 'ABEBUF'])
-print(trainset.mols)
-print(trainset.xyzset)
-trainset2 = Molset(10)
-print(trainset2.xyzset)
+# trainset = Molset(['AABHTZ', 'ABEBUF'])
+# print(trainset.mols)
+# print(trainset.xyzset)
+# trainset2 = Molset(10)
+# print(trainset2.xyzset)
 
-A = Mol('AABHTZ')
-print(A)
-print(A.xyz())
+
 
 # #Timing Tests
 # start = time.time()
