@@ -52,7 +52,6 @@ class Mol():
         a format similar to .xyz files.
         """
         atoms = self.atoms
-        size = len(atoms)
         coords = [[atom.atomic_symbol] + 
                     self.coord_format(atom.coordinates)
                         for atom in atoms]
@@ -66,12 +65,42 @@ class Mol():
         except TypeError:
             return [None, None, None]
     
-    def center_elements(self, elem):
-        """Takes an element type and returns a list of dataframes, representing
+    def element_distances(self, elem):
+        """Takes an element type and returns a dict of dataframes, representing
         the same molecule centered on each instance of that element.
         The molecule is represented entirely in terms of radii from the central
         atom, and the atoms are ordered by these distances, smallest to largest.
+        Each key in the dictionary is the label of the centered atom. 
         """
+        labels = self.find_elements(elem)
+        return {atom: self.relative_distances(atom) for atom in labels}
+        
+    
+    def find_elements(self, elem):
+        """Returns a list of the atom labels of a given element type."""
+        atoms = self.atoms
+        return [atom.label for atom in atoms if atom.atomic_symbol == elem]
+
+    # def center_atom(self, label):
+        # """Centers"""
+    
+    def relative_distances(self, label):
+        """Takes an atom label and gives a sorted dataframe containing the
+        distance of every element in the molecule to that atom."""
+        atoms = self.atoms
+        central = self.atom(label)
+        distances = [[atom.atomic_symbol]
+                 + [self.atom_distance(atom, central)] for atom in self.atoms] 
+        return pd.DataFrame(distances,
+                                columns=['Element', 'r']).sort_values('r')#.head(20)
+    
+    def atom_distance(self, atom1, atom2):
+        """Returns the distance of the atom from the given point in space."""
+        point1 = atom1.coordinates
+        point2 = atom2.coordinates
+        ssd = [(x1 - x2)**2 for x1, x2 in zip(point1, point2)]
+        return round((sum(ssd)**(0.5)), 4)
+        
         
 
 A = Mol('AABHTZ')
@@ -86,7 +115,12 @@ print(B.all_atoms_have_sites)
 B.center()
 print(B.xyz())
 print(B.all_atoms_have_sites)
-
+print(B.find_elements('C'))
+print(B.find_elements('N'))
+print(B.atom('N1').coordinates)
+print(B.atom('N1').neighbours)
+print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
+print(B.element_distances('N'))
 
                 
 class Molset():
@@ -100,8 +134,8 @@ class Molset():
     def __init__(self, ids=[]):
         self.mols = self.populate_mols(ids)
         #self.center_all()
-        #self.xyzset = self.populate_xyz()
-        self.xyzset = self.centered_xyz()
+        self.xyzset = self.populate_xyz()
+        #self.xyzset = self.centered_xyz()
     
     def populate_mols(self, ids):
         """Populates self.mols using a list of string identifiers, or a list of
@@ -140,6 +174,25 @@ class Molset():
             molxyz[id] = self.mols[id].xyz()
         return molxyz
     
+    def prepare_data(self, element, n_closest=20):
+        """Uses self.mols to create a training set of input samples (self.X) and 
+        target values (self.y). 
+        
+        element: The given element to consider.
+        n_closest: the number of closest atoms considered in each sample.
+        
+        self.X: array-like, shape = [n_samples, n_features]
+            A dict of Mol.relative_distances dataframes is extracted from each
+            item in self.mols. Each of these dataframes generates a sample for
+            self.X.
+        
+        self.y: array-like, shape = [n_samples]
+            Each key to a dataframe used for self.X is used as an atom label to
+            acquire (from the Mol) the number of atoms bonded to the central
+            atom. These are the target values.
+        """
+        
+    
         
 # examples = [csd_reader[i].identifier for i in range(11)]
 # print(examples)
@@ -149,9 +202,11 @@ class Molset():
 # print(trainset.xyzset)
 # trainset2 = Molset([10])
 # print(trainset2.xyzset)
-# trainset3 = Molset(10)
+trainset3 = Molset(10)
 # print(trainset3.xyzset)
 # print(len(trainset3.xyzset))
+# print(trainset3.X)
+# print(trainset3.y)
 
 
 # #Timing Tests
