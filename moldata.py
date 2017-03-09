@@ -9,7 +9,7 @@ csd_reader = io.EntryReader('CSD')
 def mol_reader(n):
     """Calls the nth entry in the CSD as a molecule object."""
     entry = csd_reader[n]
-    return csd_reader.molecule(entry.identifier)
+    return entry.molecule
 
 class Mol():
     """
@@ -17,7 +17,6 @@ class Mol():
     """
     def __init__(self, index):
         self._molecule = self.get_mol(index)
-        self.normalise_labels()
     
     def __getattr__(self, attr):
         """Wraps this class object around a CSD molecule object."""
@@ -105,24 +104,24 @@ class Mol():
         return len(self.atom(atomlabel).neighbours)
         
 
-A = Mol('AABHTZ')
-print(A)
-print(A.xyz())
+# A = Mol('AABHTZ')
+# print(A)
+# print(A.xyz())
 
-B = Mol(1)
-print(B)
-print(B.xyz())
-print(A.all_atoms_have_sites)
-print(B.all_atoms_have_sites)
-B.center()
-print(B.xyz())
-print(B.all_atoms_have_sites)
-print(B.find_elements('C'))
-print(B.find_elements('N'))
-print(B.atom('N1').coordinates)
-print(B.atom('N1').neighbours)
-print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
-print(B.element_distances('N'))
+# B = Mol(1)
+# print(B)
+# print(B.xyz())
+# print(A.all_atoms_have_sites)
+# print(B.all_atoms_have_sites)
+# B.center()
+# print(B.xyz())
+# print(B.all_atoms_have_sites)
+# print(B.find_elements('C'))
+# print(B.find_elements('N'))
+# print(B.atom('N1').coordinates)
+# print(B.atom('N1').neighbours)
+# print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
+# print(B.element_distances('N'))
 
                 
 class Molset():
@@ -135,8 +134,8 @@ class Molset():
     """
     def __init__(self, ids=[]):
         self.mols = self.populate_mols(ids)
-        self.center_all()
-        self.xyzset = self.populate_xyz()
+        # self.center_all()
+        # self.xyzset = self.populate_xyz()
         #self.xyzset = self.centered_xyz()
     
     def populate_mols(self, ids):
@@ -154,10 +153,12 @@ class Molset():
     
     def random_populate(self, count):
         mols = {}
+        csd_size = len(csd_reader)
         while len(mols) < count:
-            id = np.random.randint(0, len(csd_reader))
+            id = np.random.randint(0, csd_size)
             amol = Mol(id)
             if amol.all_atoms_have_sites:
+                amol.normalise_labels()
                 mols[amol.identifier] = amol
         return mols
     
@@ -232,19 +233,21 @@ class Molset():
 # print(trainset.xyzset)
 # trainset2 = Molset([10])
 # print(trainset2.xyzset)
-trainset3 = Molset(10)
+# trainset3 = Molset(10)
 # print(trainset3.xyzset)
 # print(len(trainset3.xyzset))
-trainset3.prepare_data('O', 20)
-print(trainset3.X)
-print(trainset3.y)
-print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
+# trainset3.prepare_data('N', 20)
+# print(trainset3.X)
+# print(trainset3.y)
+# print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
+
 
 
 ################################################################################
 # #Timing Tests
-# import time
+import time
 # import timeit
+import cProfile
 
 # testlist = [1, 2, 3, 4, 5]
 
@@ -281,21 +284,28 @@ print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
 # print(time2)
 # print(time3)
 
+
+trainset10 = Molset(10)
 # start = time.time()
-# trainset10 = Molset(10)
+trainset10.prepare_data('N', 20)
 # end = time.time()
 # time10 = end - start
 
-# start = time.time()
 # trainset100 = Molset(100)
+# start = time.time()
+# trainset100.prepare_data('N', 20)
 # end = time.time()
 # time100 = end - start
 
-# start = time.time()
+
 # trainset1000 = Molset(1000)
+# start = time.time()
+# trainset1000.prepare_data('N', 20)
 # end = time.time()
 # time1000 = end - start
 
 # print(time10)
 # print(time100)
 # print(time1000)
+
+cProfile.run('Molset(1000)')
