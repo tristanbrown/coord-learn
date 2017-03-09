@@ -16,6 +16,7 @@ class Mol():
     """
     def __init__(self, index):
         self._molecule = self.get_mol(index)
+        self.normalise_labels()
     
     def __getattr__(self, attr):
         """Wraps this class object around a CSD molecule object."""
@@ -98,7 +99,9 @@ class Mol():
         point2 = atom2.coordinates
         ssd = [(x1 - x2)**2 for x1, x2 in zip(point1, point2)]
         return round((sum(ssd)**(0.5)), 4)
-        
+    
+    def coordination_num(self, atomlabel):
+        return len(self.atom(atomlabel).neighbours)
         
 
 A = Mol('AABHTZ')
@@ -188,10 +191,30 @@ class Molset():
         self.X = []
         self.y = []
         for id, mol in self.mols.items():
-            distances = mol.element_distances(element)
-            for atomlabel, centering in distances.items():
-                self.y.append(atomlabel)
-                self.X.append(centering)
+            frameview = mol.element_distances(element)
+            for atomlabel, centering in frameview.items():
+                self.y.append(mol.coordination_num(atomlabel))
+                self.X.append(self.create_sample(centering, n_closest))
+        self.X = np.array(self.X)
+        self.y = np.array(self.y)
+    
+    def create_sample(self, frameview, size):
+        """Takes a dataframe containing elements and their distances from the 
+        central atom, 'frameview.' This frameview is truncated to the given size
+        and a new flat list is created of each atom in their periodic table
+        representation: 
+        (Element, r) = (n, group, r)
+        where n is the row and 'group' refers to the column in the periodic
+        table. This is accomplished using the lookup table in elementdata.py.
+        
+        EXAMPLE:
+        C 0
+        O 1.86  --> [2, 14, 0, 2, 16, 1.86]
+        
+        The sample length is 3N, where N is the number of atoms.  
+        If 3N < 60, the sample is padded with zeros such that len(sample) = 60.
+        """
+        return [0, 1, 2, 3]
     
         
 # examples = [csd_reader[i].identifier for i in range(11)]
@@ -200,16 +223,15 @@ class Molset():
 # trainset = Molset(['AABHTZ', 'ABEBUF'])
 # print(trainset.mols)
 # print(trainset.xyzset)
-trainset2 = Molset([10])
-print(trainset2.xyzset)
+# trainset2 = Molset([10])
+# print(trainset2.xyzset)
 trainset3 = Molset(10)
-print(trainset3.xyzset)
-print(len(trainset3.xyzset))
-# trainset3.prepare_data('C', 20)
-# print(trainset3.X)
-# print(trainset3.y)
-
-
+# print(trainset3.xyzset)
+# print(len(trainset3.xyzset))
+trainset3.prepare_data('O', 20)
+print(trainset3.X)
+print(trainset3.y)
+print([len(trainset3.X), len(trainset3.y)])
 
 ################################################################################
 # #Timing Tests
