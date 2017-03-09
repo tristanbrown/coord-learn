@@ -1,6 +1,7 @@
 from ccdc import io
 import pandas as pd
 import numpy as np
+import elementdata
 
 np.random.seed(901)
 csd_reader = io.EntryReader('CSD')
@@ -214,13 +215,15 @@ class Molset():
         The sample length is 3N, where N is the number of atoms.  
         If 3N < 60, the sample is padded with zeros such that len(sample) = 60.
         """
+        sample = []
         smallframe = frameview.head(size)
-        
-        a = [0, 1, 2, 3]
-        a += [0] * (3 * size - len(a))
-        return a
+        for row in smallframe.itertuples():
+            sample.extend(elementdata.periodic(row[1])) 
+            sample += [row[2]]
+        sample += [0] * (3 * size - len(sample))
+        return sample
     
-        
+# print(elementdata.Element_Table_Periodic)       
 # examples = [csd_reader[i].identifier for i in range(11)]
 # print(examples)
                         
@@ -236,6 +239,7 @@ trainset3.prepare_data('O', 20)
 print(trainset3.X)
 print(trainset3.y)
 print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
+
 
 ################################################################################
 # #Timing Tests

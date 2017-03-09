@@ -90,3 +90,8 @@ for i in range(14):
     n = i + 1
     Element_Table_Periodic[lanth[i]] = (6, 3 + n / 15)
     Element_Table_Periodic[act[i]] = (7, 3 + n / 15)
+
+def periodic(symbol):
+    """Takes an atomic symbol and returns the representation of that element
+    as its row and column in the periodic table."""
+    return Element_Table_Periodic[symbol]
