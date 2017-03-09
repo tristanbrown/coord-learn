@@ -4,12 +4,7 @@ import numpy as np
 import elementdata
 
 np.random.seed(901)
-csd_reader = io.EntryReader('CSD')
-
-def mol_reader(n):
-    """Calls the nth entry in the CSD as a molecule object."""
-    entry = csd_reader[n]
-    return entry.molecule
+csd_reader = io.MoleculeReader('CSD')
 
 class Mol():
     """
@@ -28,9 +23,9 @@ class Mol():
         """Acquires a molecule object from the CSD, using either the string 
         label for the structure, or its numerical index."""
         try: 
+            return csd_reader[index]
+        except TypeError:
             return csd_reader.molecule(index)
-        except NotImplementedError:
-            return mol_reader(index)
     
     def remove_unlocated(self):
         """Removes all atoms in a molecule that are missing coordinates."""
@@ -48,7 +43,7 @@ class Mol():
         except ValueError:
             return False
         
-    
+    @property
     def xyz(self):
         """Returns a dataframe of the molecule's atomic coordinates in
         a format similar to .xyz files.
@@ -104,24 +99,24 @@ class Mol():
         return len(self.atom(atomlabel).neighbours)
         
 
-# A = Mol('AABHTZ')
-# print(A)
-# print(A.xyz())
+A = Mol('AABHTZ')
+print(A)
+print(A.xyz)
 
-# B = Mol(1)
-# print(B)
-# print(B.xyz())
-# print(A.all_atoms_have_sites)
-# print(B.all_atoms_have_sites)
-# B.center()
-# print(B.xyz())
-# print(B.all_atoms_have_sites)
-# print(B.find_elements('C'))
-# print(B.find_elements('N'))
-# print(B.atom('N1').coordinates)
-# print(B.atom('N1').neighbours)
-# print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
-# print(B.element_distances('N'))
+B = Mol(1)
+print(B)
+print(B.xyz)
+print(A.all_atoms_have_sites)
+print(B.all_atoms_have_sites)
+B.center()
+print(B.xyz)
+print(B.all_atoms_have_sites)
+print(B.find_elements('C'))
+print(B.find_elements('N'))
+print(B.atom('N1').coordinates)
+print(B.atom('N1').neighbours)
+print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
+print(B.element_distances('N'))
 
                 
 class Molset():
@@ -168,10 +163,10 @@ class Molset():
             
     
     def populate_xyz(self):
-        return {id: self.mols[id].xyz() for id in self.mols}
+        return {id: self.mols[id].xyz for id in self.mols}
     
     def centered_xyz(self):
-        return {id: mol.xyz() for id, mol in self.mols.items() 
+        return {id: mol.xyz for id, mol in self.mols.items() 
                     if mol.center()}
     
     def prepare_data(self, element, n_closest=20):
@@ -241,7 +236,7 @@ trainset3.prepare_data('N', 20)
 print(trainset3.X)
 print(trainset3.y)
 print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
-
+print(A.xyz)
 
 
 ################################################################################
