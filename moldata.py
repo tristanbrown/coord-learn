@@ -1,6 +1,5 @@
 from ccdc import io
 import pandas as pd
-import time
 import numpy as np
 
 np.random.seed(901)
@@ -191,7 +190,8 @@ class Molset():
             acquire (from the Mol) the number of atoms bonded to the central
             atom. These are the target values.
         """
-        
+        self.X = []
+        self.y = []
     
         
 # examples = [csd_reader[i].identifier for i in range(11)]
@@ -205,11 +205,40 @@ class Molset():
 trainset3 = Molset(10)
 # print(trainset3.xyzset)
 # print(len(trainset3.xyzset))
+# trainset3.prepare_data('N', 20)
 # print(trainset3.X)
 # print(trainset3.y)
 
 
+
+################################################################################
 # #Timing Tests
+# import time
+# import timeit
+
+# testlist = [1, 2, 3, 4, 5]
+
+# def array_from_list(alist):
+    # deeplist = [[[x, x**2], [x**3, x**4]] for x in alist]
+    # return np.array(deeplist).reshape(-1, 2)
+
+# print(array_from_list(testlist))
+# time1 = timeit.timeit('array_from_list([1, 2, 3, 4, 5])',
+                        # "from __main__ import array_from_list", number=10000)
+
+
+# def array_from_arrays(alist):
+    # container = np.array([0, 0])
+    # for x in alist:
+        # container = np.vstack((container, np.array([[x, x**2], [x**3, x**4]])))
+    # return container[1:]
+
+# print(array_from_arrays(testlist))
+# time2 = timeit.timeit('array_from_arrays([1, 2, 3, 4, 5])', 
+                        # "from __main__ import array_from_arrays", number=10000)
+# print(time1)
+# print(time2)
+
 # start = time.time()
 # trainset10 = Molset(10)
 # end = time.time()
