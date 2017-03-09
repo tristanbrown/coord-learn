@@ -136,7 +136,7 @@ class Molset():
         self.mols = self.populate_mols(ids)
         # self.center_all()
         # self.xyzset = self.populate_xyz()
-        #self.xyzset = self.centered_xyz()
+        self.xyzset = self.centered_xyz()
     
     def populate_mols(self, ids):
         """Populates self.mols using a list of string identifiers, or a list of
@@ -171,7 +171,8 @@ class Molset():
         return {id: self.mols[id].xyz() for id in self.mols}
     
     def centered_xyz(self):
-        {id: mol.xyz() for id, mol in self.mols.items() if mol.center()}
+        return {id: mol.xyz() for id, mol in self.mols.items() 
+                    if mol.center()}
     
     def prepare_data(self, element, n_closest=20):
         """Uses self.mols to create a training set of input samples (self.X) and 
@@ -233,13 +234,13 @@ class Molset():
 # print(trainset.xyzset)
 # trainset2 = Molset([10])
 # print(trainset2.xyzset)
-# trainset3 = Molset(10)
-# print(trainset3.xyzset)
-# print(len(trainset3.xyzset))
-# trainset3.prepare_data('N', 20)
-# print(trainset3.X)
-# print(trainset3.y)
-# print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
+trainset3 = Molset(10)
+print(trainset3.xyzset)
+print(len(trainset3.xyzset))
+trainset3.prepare_data('N', 20)
+print(trainset3.X)
+print(trainset3.y)
+print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
 
 
 
@@ -285,27 +286,27 @@ import cProfile
 # print(time3)
 
 
-trainset10 = Molset(10)
-# start = time.time()
-trainset10.prepare_data('N', 20)
-# end = time.time()
-# time10 = end - start
+# trainset10 = Molset(10)
+# # start = time.time()
+# trainset10.prepare_data('N', 20)
+# # end = time.time()
+# # time10 = end - start
 
-# trainset100 = Molset(100)
-# start = time.time()
-# trainset100.prepare_data('N', 20)
-# end = time.time()
-# time100 = end - start
+# # trainset100 = Molset(100)
+# # start = time.time()
+# # trainset100.prepare_data('N', 20)
+# # end = time.time()
+# # time100 = end - start
 
 
-# trainset1000 = Molset(1000)
-# start = time.time()
-# trainset1000.prepare_data('N', 20)
-# end = time.time()
-# time1000 = end - start
+# # trainset1000 = Molset(1000)
+# # start = time.time()
+# # trainset1000.prepare_data('N', 20)
+# # end = time.time()
+# # time1000 = end - start
 
-# print(time10)
-# print(time100)
-# print(time1000)
+# # print(time10)
+# # print(time100)
+# # print(time1000)
 
-cProfile.run('Molset(1000)')
+# cProfile.run('Molset(1000)')
