@@ -99,24 +99,24 @@ class Mol():
         return len(self.atom(atomlabel).neighbours)
         
 
-A = Mol('AABHTZ')
-print(A)
-print(A.xyz)
+# A = Mol('AABHTZ')
+# print(A)
+# print(A.xyz)
 
-B = Mol(1)
-print(B)
-print(B.xyz)
-print(A.all_atoms_have_sites)
-print(B.all_atoms_have_sites)
-B.center()
-print(B.xyz)
-print(B.all_atoms_have_sites)
-print(B.find_elements('C'))
-print(B.find_elements('N'))
-print(B.atom('N1').coordinates)
-print(B.atom('N1').neighbours)
-print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
-print(B.element_distances('N'))
+# B = Mol(1)
+# print(B)
+# print(B.xyz)
+# print(A.all_atoms_have_sites)
+# print(B.all_atoms_have_sites)
+# B.center()
+# print(B.xyz)
+# print(B.all_atoms_have_sites)
+# print(B.find_elements('C'))
+# print(B.find_elements('N'))
+# print(B.atom('N1').coordinates)
+# print(B.atom('N1').neighbours)
+# print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
+# print(B.element_distances('N'))
 
                 
 class Molset():
@@ -131,7 +131,7 @@ class Molset():
         self.mols = self.populate_mols(ids)
         # self.center_all()
         # self.xyzset = self.populate_xyz()
-        self.xyzset = self.centered_xyz()
+        # self.xyzset = self.centered_xyz()
     
     def populate_mols(self, ids):
         """Populates self.mols using a list of string identifiers, or a list of
@@ -229,21 +229,19 @@ class Molset():
 # print(trainset.xyzset)
 # trainset2 = Molset([10])
 # print(trainset2.xyzset)
-trainset3 = Molset(10)
-print(trainset3.xyzset)
-print(len(trainset3.xyzset))
-trainset3.prepare_data('N', 20)
+trainset3 = Molset(100)
+# print(trainset3.xyzset)
+# print(len(trainset3.xyzset))
+trainset3.prepare_data('O', 20)
 print(trainset3.X)
 print(trainset3.y)
 print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
-print(A.xyz)
-
 
 ################################################################################
 # #Timing Tests
-import time
+# import time
 # import timeit
-import cProfile
+# import cProfile
 
 # testlist = [1, 2, 3, 4, 5]
 
@@ -294,9 +292,9 @@ import cProfile
 # # time100 = end - start
 
 
-# # trainset1000 = Molset(1000)
+# trainset1000 = Molset(1000)
 # # start = time.time()
-# # trainset1000.prepare_data('N', 20)
+# trainset1000.prepare_data('N', 20)
 # # end = time.time()
 # # time1000 = end - start
 
@@ -305,3 +303,4 @@ import cProfile
 # # print(time1000)
 
 # cProfile.run('Molset(1000)')
+# cProfile.run("trainset3.prepare_data('N', 20)")
