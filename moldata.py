@@ -43,8 +43,10 @@ class Mol():
             self.remove_unlocated()
             self.translate([round(-1 * a, 4)
                             for a in self.centre_of_geometry()])
+            return True
         except ValueError:
-            pass
+            return False
+        
     
     def xyz(self):
         """Returns a dataframe of the molecule's atomic coordinates in
@@ -79,9 +81,6 @@ class Mol():
         """Returns a list of the atom labels of a given element type."""
         atoms = self.atoms
         return [atom.label for atom in atoms if atom.atomic_symbol == elem]
-
-    # def center_atom(self, label):
-        # """Centers"""
     
     def relative_distances(self, label):
         """Takes an atom label and gives a sorted dataframe containing the
@@ -132,7 +131,7 @@ class Molset():
     """
     def __init__(self, ids=[]):
         self.mols = self.populate_mols(ids)
-        #self.center_all()
+        self.center_all()
         self.xyzset = self.populate_xyz()
         #self.xyzset = self.centered_xyz()
     
@@ -160,18 +159,14 @@ class Molset():
     
     def center_all(self):
         """Use to re-center all Mols."""
-        for id in self.mols:
-            self.mols[id].center()
+        return [mol.center() for id, mol in self.mols.items()]
+            
     
     def populate_xyz(self):
         return {id: self.mols[id].xyz() for id in self.mols}
     
     def centered_xyz(self):
-        molxyz = {}
-        for id in self.mols:
-            self.mols[id].center()
-            molxyz[id] = self.mols[id].xyz()
-        return molxyz
+        {id: mol.xyz() for id, mol in self.mols.items() if mol.center()}
     
     def prepare_data(self, element, n_closest=20):
         """Uses self.mols to create a training set of input samples (self.X) and 
@@ -192,6 +187,11 @@ class Molset():
         """
         self.X = []
         self.y = []
+        for id, mol in self.mols.items():
+            distances = mol.element_distances(element)
+            for atomlabel, centering in distances.items():
+                self.y.append(atomlabel)
+                self.X.append(centering)
     
         
 # examples = [csd_reader[i].identifier for i in range(11)]
@@ -200,12 +200,12 @@ class Molset():
 # trainset = Molset(['AABHTZ', 'ABEBUF'])
 # print(trainset.mols)
 # print(trainset.xyzset)
-# trainset2 = Molset([10])
-# print(trainset2.xyzset)
+trainset2 = Molset([10])
+print(trainset2.xyzset)
 trainset3 = Molset(10)
-# print(trainset3.xyzset)
-# print(len(trainset3.xyzset))
-# trainset3.prepare_data('N', 20)
+print(trainset3.xyzset)
+print(len(trainset3.xyzset))
+# trainset3.prepare_data('C', 20)
 # print(trainset3.X)
 # print(trainset3.y)
 
@@ -236,8 +236,20 @@ trainset3 = Molset(10)
 # print(array_from_arrays(testlist))
 # time2 = timeit.timeit('array_from_arrays([1, 2, 3, 4, 5])', 
                         # "from __main__ import array_from_arrays", number=10000)
+
+# def array_from_listappend(alist):
+    # deeplist = []
+    # for x in alist:
+        # deeplist.append([x, x**2])
+        # deeplist.append([x**3, x**4])
+    # return np.array(deeplist)
+
+# time3 = timeit.timeit('array_from_listappend([1, 2, 3, 4, 5])', 
+                    # "from __main__ import array_from_listappend", number=10000)
+
 # print(time1)
 # print(time2)
+# print(time3)
 
 # start = time.time()
 # trainset10 = Molset(10)
