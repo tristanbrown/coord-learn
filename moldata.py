@@ -90,8 +90,8 @@ class Mol():
         central = self.atom(label)
         distances = [[atom.atomic_symbol]
                  + [self.atom_distance(atom, central)] for atom in self.atoms] 
-        return pd.DataFrame(distances,
-                                columns=['Element', 'r']).sort_values('r')#.head(20)
+        unsortedframe = pd.DataFrame(distances, columns=['Element', 'r'])
+        return unsortedframe.sort_values('r').reset_index(drop=True)
     
     def atom_distance(self, atom1, atom2):
         """Returns the distance of the atom from the given point in space."""
@@ -188,15 +188,15 @@ class Molset():
             acquire (from the Mol) the number of atoms bonded to the central
             atom. These are the target values.
         """
-        self.X = []
-        self.y = []
+        _X = []
+        _y = []
         for id, mol in self.mols.items():
             frameview = mol.element_distances(element)
             for atomlabel, centering in frameview.items():
-                self.y.append(mol.coordination_num(atomlabel))
-                self.X.append(self.create_sample(centering, n_closest))
-        self.X = np.array(self.X)
-        self.y = np.array(self.y)
+                _y.append(mol.coordination_num(atomlabel))
+                _X.append(self.create_sample(centering, n_closest))
+        self.X = np.array(_X)
+        self.y = np.array(_y)
     
     def create_sample(self, frameview, size):
         """Takes a dataframe containing elements and their distances from the 
@@ -214,7 +214,11 @@ class Molset():
         The sample length is 3N, where N is the number of atoms.  
         If 3N < 60, the sample is padded with zeros such that len(sample) = 60.
         """
-        return [0, 1, 2, 3]
+        smallframe = frameview.head(size)
+        
+        a = [0, 1, 2, 3]
+        a += [0] * (3 * size - len(a))
+        return a
     
         
 # examples = [csd_reader[i].identifier for i in range(11)]
@@ -231,7 +235,7 @@ trainset3 = Molset(10)
 trainset3.prepare_data('O', 20)
 print(trainset3.X)
 print(trainset3.y)
-print([len(trainset3.X), len(trainset3.y)])
+print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
 
 ################################################################################
 # #Timing Tests
