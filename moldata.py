@@ -2,6 +2,8 @@ from ccdc import io
 import pandas as pd
 import numpy as np
 import elementdata
+import perceptron as nn1
+import matplotlib.pyplot as plt
 
 np.random.seed(901)
 csd_reader = io.MoleculeReader('CSD')
@@ -236,6 +238,15 @@ trainset3.prepare_data('O', 20)
 print(trainset3.X)
 print(trainset3.y)
 print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
+
+print(trainset3.X.shape[1])
+
+ppn = nn1.Perceptron(eta=.0001, n_iter=100)
+ppn.fit(trainset3.X, trainset3.y)
+plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
+plt.xlabel('Epochs')
+plt.ylabel('Number of misclassifications')
+plt.show()
 
 ################################################################################
 # #Timing Tests
