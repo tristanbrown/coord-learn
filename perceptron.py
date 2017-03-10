@@ -1,3 +1,5 @@
+# Adapted from "Python Machine Learning" by Sebastian Raschka.
+
 import numpy as np
 class Perceptron(object):
     """Perceptron classifier.
