@@ -2,6 +2,7 @@ from __future__ import division
 
 Element_Table_Periodic = {
     'H': (1, 1),
+    'D': (1, 1),
     'He': (1, 18),
     'Li': (2, 1),
     'Be': (2, 2),

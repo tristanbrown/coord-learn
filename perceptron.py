@@ -49,9 +49,10 @@ class Perceptron(object):
                 update = self.eta * (target - self.predict(xi))
                 self.w_[1:] += update * xi
                 self.w_[0] += update
-                print self.w_
+                #print self.w_
                 errors += int(update != 0.0)
             self.errors_.append(errors)
+        print(self.w_)
         return self
     
     def net_input(self, X):
@@ -60,4 +61,5 @@ class Perceptron(object):
     
     def predict(self, X):
         """Return class label after unit step"""
-        return np.where(self.net_input(X) >= 0.0, 1, -1)
+        #return np.where(self.net_input(X) >= 0.0, 1, -1)
+        return int(round(self.net_input(X)))
