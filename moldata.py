@@ -80,6 +80,10 @@ class Mol():
         atoms = self.atoms
         return [atom.label for atom in atoms if atom.atomic_symbol == elem]
     
+    def element_count(self, elem):
+        """Returns the count of a specific type of element in the molecule."""
+        return len(self.find_elements(elem))
+    
     def relative_distances(self, label):
         """Takes an atom label and gives a sorted dataframe containing the
         distance of every element in the molecule to that atom."""
@@ -101,7 +105,7 @@ class Mol():
         return len(self.atom(atomlabel).neighbours)
         
 
-# A = Mol('AABHTZ')
+A = Mol('AABHTZ')
 # print(A)
 # print(A.xyz)
 
@@ -119,6 +123,8 @@ class Mol():
 # print(B.atom('N1').neighbours)
 # print([len(B.atom(label).neighbours) for label in B.find_elements('O')])
 # print(B.element_distances('N'))
+# print(A.element_count1('C'))
+# print(A.element_count2('C'))
 
                 
 class Molset():
@@ -129,34 +135,50 @@ class Molset():
     containing a subset of the molecule objects in the CSD. 
     
     """
-    def __init__(self, ids=[]):
-        self.mols = self.populate_mols(ids)
+    def __init__(self, ids=[], elem=None, version=1):
+        self.elem = elem
+        self.V = version
+        self.ids = ids
+        self.mols = self.populate_mols()
+        
         # self.center_all()
         # self.xyzset = self.populate_xyz()
         # self.xyzset = self.centered_xyz()
     
-    def populate_mols(self, ids):
+    def populate_mols(self):
         """Populates self.mols using a list of string identifiers, or a list of
         numerical indices. If instead a number n is given directly, n fully-3D
         entries are chosen from the CSD to populate self.mols."""
         try:
             mols = {}
-            for id in ids:
+            for id in self.ids:
                 amol = Mol(id)
                 mols[amol.identifier] = amol
         except TypeError:
-            mols = self.random_populate(ids)
+            mols = self.random_populate(self.ids, self.elem)
         return mols
     
-    def random_populate(self, count):
+    def random_populate(self, count, elem):
+        """Returns a dict of Mol objects populated at random. The number of
+        objects is either the count, or if an element is given, by the total 
+        number of instances of that element in the set of molecules."""
         mols = {}
+        self.count = count
         csd_size = len(csd_reader)
         while len(mols) < count:
             id = np.random.randint(0, csd_size)
             amol = Mol(id)
+            label = amol.identifier
             if amol.all_atoms_have_sites:
-                amol.normalise_labels()
-                mols[amol.identifier] = amol
+                if elem is None:
+                    amol.normalise_labels()
+                    mols[label] = amol
+                else:
+                    n_atoms = amol.element_count(elem)
+                    if n_atoms > 0:
+                        amol.normalise_labels()
+                        mols[label] = amol
+                        count = count - n_atoms + 1
         return mols
     
     def center_all(self):
@@ -197,6 +219,11 @@ class Molset():
                 _X.append(self.create_sample(centering, n_closest))
         self.X = np.array(_X)
         self.y = np.array(_y)
+        try:
+            self.X.resize((self.count,60))
+            self.y.resize((self.count))
+        except:
+            pass
     
     def create_sample(self, frameview, size):
         """Takes a dataframe containing elements and their distances from the 
@@ -231,22 +258,24 @@ class Molset():
 # print(trainset.xyzset)
 # trainset2 = Molset([10])
 # print(trainset2.xyzset)
-trainset3 = Molset(1000)
+trainset3 = Molset(100, 'Ru')
 # print(trainset3.xyzset)
 # print(len(trainset3.xyzset))
-trainset3.prepare_data('N', 20)
+trainset3.prepare_data('Ru', 20)
 print(trainset3.X)
 print(trainset3.y)
 print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
 
-print(trainset3.X.shape[1])
+# print(trainset3.X.shape[1])
 
-ppn = nn1.Perceptron(eta=.00001, n_iter=1000)
-ppn.fit(trainset3.X, trainset3.y)
-plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
-plt.xlabel('Epochs')
-plt.ylabel('Number of misclassifications')
-plt.show()
+
+##Training Perceptron
+# ppn = nn1.Perceptron(eta=.00001, n_iter=1000)
+# ppn.fit(trainset3.X, trainset3.y)
+# plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
+# plt.xlabel('Epochs')
+# plt.ylabel('Number of misclassifications')
+# plt.show()
 
 ################################################################################
 # #Timing Tests
@@ -254,13 +283,6 @@ plt.show()
 # import timeit
 # import cProfile
 
-# testlist = [1, 2, 3, 4, 5]
-
-# def array_from_list(alist):
-    # deeplist = [[[x, x**2], [x**3, x**4]] for x in alist]
-    # return np.array(deeplist).reshape(-1, 2)
-
-# print(array_from_list(testlist))
 # time1 = timeit.timeit('array_from_list([1, 2, 3, 4, 5])',
                         # "from __main__ import array_from_list", number=10000)
 
@@ -290,28 +312,28 @@ plt.show()
 # print(time3)
 
 
-# trainset10 = Molset(10)
-# # start = time.time()
-# trainset10.prepare_data('N', 20)
-# # end = time.time()
-# # time10 = end - start
 
-# # trainset100 = Molset(100)
-# # start = time.time()
-# # trainset100.prepare_data('N', 20)
-# # end = time.time()
-# # time100 = end - start
+# start = time.time()
+# trainset10 = Molset(100, 'Cu')
+# end = time.time()
+# time1 = end - start
+
+
+# start = time.time()
+# trainset100 = Molset(100, 'C', 2)
+# end = time.time()
+# time2 = end - start
 
 
 # trainset1000 = Molset(1000)
-# # start = time.time()
+# start = time.time()
 # trainset1000.prepare_data('N', 20)
-# # end = time.time()
-# # time1000 = end - start
+# end = time.time()
+# time1000 = end - start
 
-# # print(time10)
-# # print(time100)
-# # print(time1000)
+# print(time1)
+# print(time2)
+# print(time1000)
 
 # cProfile.run('Molset(1000)')
 # cProfile.run("trainset3.prepare_data('N', 20)")
