@@ -135,11 +135,12 @@ class Molset():
     containing a subset of the molecule objects in the CSD. 
     
     """
-    def __init__(self, ids=[], elem=None, version=1):
+    def __init__(self, ids=[], elem=None, num_nearest=20, version=1):
         self.elem = elem
         self.V = version
         self.ids = ids
         self.mols = self.populate_mols()
+        self.prepare_data(self.elem, num_nearest)
         
         # self.center_all()
         # self.xyzset = self.populate_xyz()
@@ -258,10 +259,10 @@ class Molset():
 # print(trainset.xyzset)
 # trainset2 = Molset([10])
 # print(trainset2.xyzset)
-trainset3 = Molset(100, 'Ru')
+trainset3 = Molset(100, 'N', 20)
 # print(trainset3.xyzset)
 # print(len(trainset3.xyzset))
-trainset3.prepare_data('Ru', 20)
+#trainset3.prepare_data('N', 20)
 print(trainset3.X)
 print(trainset3.y)
 print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
@@ -269,13 +270,13 @@ print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
 # print(trainset3.X.shape[1])
 
 
-##Training Perceptron
-# ppn = nn1.Perceptron(eta=.00001, n_iter=1000)
-# ppn.fit(trainset3.X, trainset3.y)
-# plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
-# plt.xlabel('Epochs')
-# plt.ylabel('Number of misclassifications')
-# plt.show()
+#Training Perceptron
+ppn = nn1.Perceptron(eta=.00001, n_iter=1000)
+ppn.fit(trainset3.X, trainset3.y)
+plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
+plt.xlabel('Training Cycles')
+plt.ylabel('Number of misclassifications')
+plt.show()
 
 ################################################################################
 # #Timing Tests
