@@ -1,5 +1,5 @@
 from __future__ import division
-
+#REWRITE THIS AS AN ATOM CLASS
 Element_Table_Periodic = {
     'H': (1, 1),
     'D': (1, 1),
