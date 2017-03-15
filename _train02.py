@@ -1,19 +1,19 @@
-## Training using the Perceptron implementation in scikit-learn
+## Training using the Perceptron implementation in scikit-learn, as described
+## in Python Machine Learning (pg 50), by Sebastian Raschka. 
 
-import matplotlib.pyplot as plt
 from moldata import *
+import matplotlib.pyplot as plt
     
 # Data prep. 
-trainset3 = Molset(1000, 'N', 20)
-print(trainset3.X)
-print(trainset3.y)
-print([(len(trainset3.X), len(trainset3.X[0])), len(trainset3.y)])
+trainset1 = Molset(1000, 'N', 20)
+print(trainset1.X)
+print(trainset1.y)
+print([(len(trainset1.X), len(trainset1.X[0])), len(trainset1.y)])
 
-## Training Perceptron using scikit-learn, as described in Python Machine
-## Learning (pg 50), by Sebastian Raschka. 
+## Training.
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(
-        trainset3.X, trainset3.y, test_size=0.3, random_state=0)
+        trainset1.X, trainset1.y, test_size=0.3, random_state=0)
 
 from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
