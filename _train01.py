@@ -5,7 +5,7 @@ import perceptron as nn
 import matplotlib.pyplot as plt
     
 # Data prep. 
-trainset1 = Molset(100, 'N', 20)
+trainset1 = Molset(100, 'Fe', 20)
 print(trainset1.X)
 print(trainset1.y)
 print([(len(trainset1.X), len(trainset1.X[0])), len(trainset1.y)])

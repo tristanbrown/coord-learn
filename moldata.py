@@ -1,7 +1,6 @@
 from ccdc import io
 import pandas as pd
 import numpy as np
-import elementdata
 
 np.random.seed(901)
 csd_reader = io.MoleculeReader('CSD')
@@ -116,6 +115,8 @@ class Molset():
         self.V = version
         self.ids = ids
         self.mols = self.populate_mols()
+        self.Periodic_Table = pd.read_csv('element_data.csv',
+                                        delimiter=',', header=0, index_col=0)
         self.prepare_data(self.elem, num_nearest)
         
         # self.center_all()
@@ -221,7 +222,7 @@ class Molset():
         sample = []
         smallframe = frameview.head(size)
         for row in smallframe.itertuples():
-            sample.extend(elementdata.periodic(row[1])) 
+            sample.extend(self.Periodic_Table.loc[row[1],'n':'group']) 
             sample += [row[2]]
         sample += [0] * (3 * size - len(sample))
         return sample
