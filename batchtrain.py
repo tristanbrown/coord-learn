@@ -6,6 +6,13 @@ import pandas as pd
 
 class BatchTrainer():
     """
+    Takes in a sample size and a type of neural network. For each element in the
+    periodic table, it creates a data set, preps that data set, trains the
+    network, and then records the trained network's accuracy on a prepped test
+    set. 
+    
+    The accuracy values are stored in a [ordered dict or dataframe?], so they
+    can be saved to a .csv file and plotted (accuracy vs element). 
     """
     def __init__(self):
         self.Periodic_Table = pd.read_csv('element_data.csv',
