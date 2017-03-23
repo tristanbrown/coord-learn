@@ -133,18 +133,20 @@ class Molset():
                 amol = Mol(id)
                 mols[amol.identifier] = amol
         except TypeError:
-            mols = self.random_populate(self.ids, self.elem)
+            self.count = self.ids
+            mols = self.random_populate(self.count, self.elem)
         return mols
     
-    def random_populate(self, count, elem):
+    def random_populate(self, count, elem, max=5000):
         """Returns a dict of Mol objects populated at random. The number of
         objects is either the count, or if an element is given, by the total 
         number of instances of that element in the set of molecules."""
         mols = {}
-        self.count = count
         csd_size = len(csd_reader)
-        while len(mols) < count:
+        checked = 0
+        while len(mols) < count and checked < max:
             id = np.random.randint(0, csd_size)
+            checked += 1
             amol = Mol(id)
             label = amol.identifier
             if amol.all_atoms_have_sites:
@@ -157,6 +159,10 @@ class Molset():
                         amol.normalise_labels()
                         mols[label] = amol
                         count = count - n_atoms + 1
+        if checked == max:
+            self.count = len(mols)
+        print("Checked %d CSD entries, finding %d samples." 
+                    % (checked, self.count))
         return mols
     
     def center_all(self):

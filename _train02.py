@@ -4,7 +4,7 @@
 from moldata import *
     
 ## Data prep. 
-trainset1 = Molset(200, 'C', 20)
+trainset1 = Molset(100, 'C', 20)
 print(trainset1.X)
 print(trainset1.y)
 print([(len(trainset1.X), len(trainset1.X[0])), len(trainset1.y)])
