@@ -1,6 +1,7 @@
 from ccdc import io
 import pandas as pd
 import numpy as np
+import time
 
 np.random.seed(901)
 csd_reader = io.MoleculeReader('CSD')
@@ -110,10 +111,11 @@ class Molset():
     containing a subset of the molecule objects in the CSD. 
     
     """
-    def __init__(self, ids=[], elem=None, num_nearest=20, version=1):
+    def __init__(self, ids=[], elem=None, num_nearest=20, max=5000, version=1):
         self.elem = elem
         self.V = version
         self.ids = ids
+        self.max = max
         self.mols = self.populate_mols()
         self.Periodic_Table = pd.read_csv('element_data.csv',
                                         delimiter=',', header=0, index_col=0)
@@ -137,14 +139,15 @@ class Molset():
             mols = self.random_populate(self.count, self.elem)
         return mols
     
-    def random_populate(self, count, elem, max=5000):
+    def random_populate(self, count, elem):
         """Returns a dict of Mol objects populated at random. The number of
         objects is either the count, or if an element is given, by the total 
         number of instances of that element in the set of molecules."""
+        time1 = time.time()
         mols = {}
         csd_size = len(csd_reader)
         checked = 0
-        while len(mols) < count and checked < max:
+        while len(mols) < count and checked < self.max:
             id = np.random.randint(0, csd_size)
             checked += 1
             amol = Mol(id)
@@ -159,10 +162,14 @@ class Molset():
                         amol.normalise_labels()
                         mols[label] = amol
                         count = count - n_atoms + 1
-        if checked == max:
+        time2 = time.time()
+        
+        if checked == self.max:
             self.count = len(mols)
-        print("Checked %d CSD entries, finding %d samples." 
-                    % (checked, self.count))
+        
+        print("""Spent %.1f sec checking %d CSD entries, finding %d samples of 
+                the element, %s."""
+                    % (round(time2 - time1, 2), checked, self.count, elem))
         return mols
     
     def center_all(self):

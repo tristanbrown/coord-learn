@@ -18,12 +18,14 @@ class BatchTrainer():
     The accuracy values are stored in a [ordered dict or dataframe?], so they
     can be saved to a .csv file and plotted (accuracy vs element). 
     """
-    def __init__(self, sample_size=100, closest_atoms=20, test_split=0.3):
+    def __init__(self, sample_size=100, closest_atoms=20, max=5000,
+                    test_split=0.3):
         self.Table = pd.read_csv('element_data.csv',
                                         delimiter=',', header=0, index_col=0)
         
         self.samples = sample_size
         self.range = closest_atoms
+        self.max = max
         self.split = test_split
         
         self.NN = Perceptron(n_iter=40, eta0=0.1, random_state=0)
@@ -31,20 +33,30 @@ class BatchTrainer():
         
     
     def train(self, element):
-        """"""
-        trainset = Molset(self.samples, element, self.range)
-        X_train, X_test, y_train, y_test = train_test_split(
-            trainset.X, trainset.y, test_size=self.split, random_state=0)
-        sc = StandardScaler()
-        sc.fit(X_train)
-        X_train_std = sc.transform(X_train)
-        X_test_std = sc.transform(X_test)
-        
-        self.NN.fit(X_train_std, y_train)
-        y_pred = self.NN.predict(X_test_std)
-        
-        print('Misclassified samples: %d' % (y_test != y_pred).sum())
-        print('Accuracy: %.3f' % accuracy_score(y_test, y_pred))
+        """Trains the neural network given by self.NN, attempting to use the 
+        given number of samples of the given element from the CSD. If too few
+        samples are found, returns False."""
+        trainset = Molset(self.samples, element, self.range, self.max)
+        finalsize = len(trainset.X)
+        if finalsize < 10:
+            print("Error: %d samples is not enough to train." % finalsize)
+            return False
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(
+                trainset.X, trainset.y, test_size=self.split, random_state=0)
+            sc = StandardScaler()
+            sc.fit(X_train)
+            X_train_std = sc.transform(X_train)
+            X_test_std = sc.transform(X_test)
+            
+            self.NN.fit(X_train_std, y_train)
+            y_pred = self.NN.predict(X_test_std)
+            
+            accuracy = accuracy_score(y_test, y_pred)
+            print('Misclassified samples: %d' % (y_test != y_pred).sum())
+            print('Accuracy: %.3f' % accuracy)
+            
+            return (accuracy, finalsize)
         
     def train_all(self):
         self.Table['Accuracy'] =  Table.index.map(self.train)
