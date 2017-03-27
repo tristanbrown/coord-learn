@@ -3,6 +3,7 @@
 
 from moldata import *
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Perceptron
@@ -37,29 +38,36 @@ class BatchTrainer():
         given number of samples of the given element from the CSD. If too few
         samples are found, returns False."""
         trainset = Molset(self.samples, element, self.range, self.max)
-        finalsize = len(trainset.X)
-        if finalsize < 10:
-            print("Error: %d samples is not enough to train." % finalsize)
-            return False
-        else:
-            X_train, X_test, y_train, y_test = train_test_split(
-                trainset.X, trainset.y, test_size=self.split, random_state=0)
-            sc = StandardScaler()
-            sc.fit(X_train)
-            X_train_std = sc.transform(X_train)
-            X_test_std = sc.transform(X_test)
-            
-            self.NN.fit(X_train_std, y_train)
-            y_pred = self.NN.predict(X_test_std)
-            
-            accuracy = accuracy_score(y_test, y_pred)
-            print('Misclassified samples: %d' % (y_test != y_pred).sum())
-            print('Accuracy: %.3f' % accuracy)
-            
-            return (accuracy, finalsize)
+        
+        try:
+            finalsize = len(trainset.X)
+            if finalsize < 10:
+                raise ValueError("Error: %d samples is not enough to train." 
+                                        % finalsize)
+            else:
+                X_train, X_test, y_train, y_test = train_test_split(
+                    trainset.X, trainset.y, test_size=self.split, 
+                    random_state=0)
+                sc = StandardScaler()
+                sc.fit(X_train)
+                X_train_std = sc.transform(X_train)
+                X_test_std = sc.transform(X_test)
+                
+                self.NN.fit(X_train_std, y_train)
+                y_pred = self.NN.predict(X_test_std)
+                
+                accuracy = accuracy_score(y_test, y_pred)
+                print('Misclassified samples: %d' % (y_test != y_pred).sum())
+                print('Accuracy: %.3f' % accuracy)
+                
+                return np.array([accuracy, finalsize])
+        except ValueError:
+            print("""Error: Training failed for some reason (e.g. not enough
+                    samples, only one class label, etc.)""")
+            return np.nan
         
     def train_all(self):
-        self.Table['Accuracy'] =  Table.index.map(self.train)
+        self.Table['Accuracy'] =  self.Table.index.map(self.train)
         print(self.Table)
         
         
