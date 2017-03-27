@@ -116,6 +116,7 @@ class Molset():
         self.V = version
         self.ids = ids
         self.max = max
+        print('Preparing data set from the element ' + self.elem + '.')
         self.mols = self.populate_mols()
         self.Periodic_Table = pd.read_csv('element_data.csv',
                                         delimiter=',', header=0, index_col=0)

@@ -69,7 +69,7 @@ class BatchTrainer():
     def train_all(self):
         self.Table['Accuracy'] =  self.Table.index.map(self.train)
         print(self.Table)
-        
+        self.Table.to_csv(path_or_buf='element_accuracies.csv')
         
         # Insert accuracy_score(y_test, y_pred) into NN Accuracy column.
 
