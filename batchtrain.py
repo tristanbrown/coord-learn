@@ -20,7 +20,7 @@ class BatchTrainer():
     can be saved to a .csv file and plotted (accuracy vs element). 
     """
     def __init__(self, sample_size=100, closest_atoms=20, max=5000,
-                    test_split=0.3):
+                    test_split=0.3, iter=100):
         self.Table = pd.read_csv('element_data.csv',
                                         delimiter=',', header=0, index_col=0)
         
@@ -29,7 +29,7 @@ class BatchTrainer():
         self.max = max
         self.split = test_split
         
-        self.NN = Perceptron(n_iter=40, eta0=0.1, random_state=0)
+        self.NN = Perceptron(n_iter=iter, eta0=0.1, random_state=0)
         
         
     
@@ -60,21 +60,15 @@ class BatchTrainer():
                 print('Misclassified samples: %d' % (y_test != y_pred).sum())
                 print('Accuracy: %.3f' % accuracy)
                 
-                return np.array([accuracy, finalsize])
+                return (accuracy, finalsize)
         except ValueError:
             print("""Error: Training failed for some reason (e.g. not enough
                     samples, only one class label, etc.)""")
-            return np.nan
+            return (np.nan, finalsize)
         
-    def train_all(self):
-        self.Table['Accuracy'] =  self.Table.index.map(self.train)
-        print(self.Table)
-        self.Table.to_csv(path_or_buf='element_accuracies.csv')
-        
-        # Insert accuracy_score(y_test, y_pred) into NN Accuracy column.
-
-
-
-# ## Plotting
-# import matplotlib.pyplot as plt
-
+    def train_all(self, filename):
+        outputs =  pd.DataFrame(self.Table.index.map(self.train).tolist(), 
+                                    columns=['Accuracy', 'Samples'],
+                                    index=self.Table.index)
+        file = filename + '.csv'
+        outputs.to_csv(path_or_buf=file)
