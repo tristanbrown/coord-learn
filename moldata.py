@@ -111,67 +111,90 @@ class Molset():
     containing a subset of the molecule objects in the CSD. 
     
     """
-    def __init__(self, ids=[], elem=None, num_nearest=20, max=5000, version=1):
+    def __init__(self, ids=[], elem=None, max=5000, savename=False, 
+                        version=1):
         self.elem = elem
         self.V = version
         self.ids = ids
         self.max = max
         print('Preparing data set from the element ' + self.elem + '.')
-        self.mols = self.populate_mols()
+        self.mols = {}
+        self.populate_mols(savename)
         self.Periodic_Table = pd.read_csv('element_data.csv',
                                         delimiter=',', header=0, index_col=0)
-        self.prepare_data(self.elem, num_nearest)
+        
+        # self.prepare_data(self.elem, num_nearest)
         
         # self.center_all()
         # self.xyzset = self.populate_xyz()
         # self.xyzset = self.centered_xyz()
     
-    def populate_mols(self):
+    def populate_mols(self, savename=False):
         """Populates self.mols using a list of string identifiers, or a list of
         numerical indices. If instead a number n is given directly, n fully-3D
         entries are chosen from the CSD to populate self.mols."""
         try:
-            mols = {}
             for id in self.ids:
                 amol = Mol(id)
-                mols[amol.identifier] = amol
+                self.mols[amol.identifier] = amol
         except TypeError:
             self.count = self.ids
-            mols = self.random_populate(self.count, self.elem)
-        return mols
+            self.random_populate(self.count, self.elem, savename)
     
-    def random_populate(self, count, elem):
+    def random_populate(self, size, elem, savename):
         """Returns a dict of Mol objects populated at random. The number of
         objects is either the count, or if an element is given, by the total 
         number of instances of that element in the set of molecules."""
         time1 = time.time()
-        mols = {}
         csd_size = len(csd_reader)
         checked = 0
-        while len(mols) < count and checked < self.max:
+        count = 0
+        while count < size and checked < self.max:
             id = np.random.randint(0, csd_size)
-            checked += 1
+            
             amol = Mol(id)
             label = amol.identifier
             if amol.all_atoms_have_sites:
                 if elem is None:
                     amol.normalise_labels()
-                    mols[label] = amol
+                    self.mols[label] = amol
                 else:
                     n_atoms = amol.element_count(elem)
                     if n_atoms > 0:
                         amol.normalise_labels()
-                        mols[label] = amol
-                        count = count - n_atoms + 1
+                        self.mols[label] = amol
+                        count = count + n_atoms
+            checked += 1
+            if savename and checked % 1000 == 0:
+                self.saveset(savename)
+        if checked == self.max:
+            self.count = count
+        
         time2 = time.time()
         
-        if checked == self.max:
-            self.count = len(mols)
-        
-        print("""Spent %.1f sec checking %d CSD entries, finding %d samples of 
-                the element, %s."""
+        # if checked == self.max:
+            # self.count = len(self.mols)
+        if savename:
+            self.saveset(savename)
+        print('Spent %.1f sec checking %d CSD entries, finding %d samples of ' 
+                'the element, %s.'
                     % (round(time2 - time1, 2), checked, self.count, elem))
-        return mols
+    
+    def saveset(self, savename):
+        """"""
+        entries = np.array(self.labels)
+        np.save(savename + '.npy', entries)
+    
+    def loadset(self, savename):
+        """"""
+        self.ids = np.load(savename + '.npy')
+        self.populate_mols()
+    
+    @property
+    def labels(self):
+        """Gives the string identifiers corresponding to CSD entries for the 
+        Molset."""
+        return self.mols.keys()
     
     def center_all(self):
         """Use to re-center all Mols."""

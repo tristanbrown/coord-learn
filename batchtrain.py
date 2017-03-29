@@ -4,6 +4,7 @@
 from moldata import *
 import pandas as pd
 import numpy as np
+import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Perceptron
@@ -31,13 +32,27 @@ class BatchTrainer():
         
         self.NN = Perceptron(n_iter=iter, eta0=0.1, random_state=0)
         
-        
+    def harvest(self, element):
+        """Generates and saves a list of CSD identifiers that will give
+        the correct number of samples. 
+        """
+        folder = 'samples/'
+        path = folder + element + '_'
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        temppath = path + str(self.samples) + 'temp'
+        trainset = Molset(self.samples, element, self.max,
+                            savename=temppath)
+        print(trainset.labels)
+        trainset.saveset(path + str(trainset.count))
+        os.remove(temppath + '.npy')
     
     def train(self, element):
         """Trains the neural network given by self.NN, attempting to use the 
         given number of samples of the given element from the CSD. If too few
         samples are found, returns False."""
-        trainset = Molset(self.samples, element, self.range, self.max)
+        trainset = Molset(self.samples, element, self.max)
+        trainset.prepare_data(element, self.range)
         
         try:
             finalsize = len(trainset.X)
@@ -62,8 +77,9 @@ class BatchTrainer():
                 
                 return (accuracy, finalsize)
         except ValueError:
-            print("""Error: Training failed for some reason (e.g. not enough
-                    samples, only one class label, etc.)""")
+            print('Error: Training on %s failed for some reason '
+                    '(e.g. not enough samples, only one class label, etc.).' 
+                    % element)
             return (np.nan, finalsize)
         
     def train_all(self, filename):

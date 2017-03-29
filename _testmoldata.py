@@ -3,6 +3,7 @@ from moldata import *
 ## Tests of Mol
 
 A = Mol('AABHTZ')
+
 # print(A)
 # print(A.xyz)
 
