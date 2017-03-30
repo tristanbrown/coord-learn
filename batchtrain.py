@@ -5,6 +5,7 @@ from moldata import *
 import pandas as pd
 import numpy as np
 import os
+import re
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Perceptron
@@ -49,8 +50,8 @@ class BatchTrainer():
         print(trainset.labels)
         os.remove(temppath + '.npy')
     
-    def recover(self, element, savename):
-        ids = np.load(self.sample_folder + '/' + savename + '.npy')
+    def recover(self, element, filename):
+        ids = np.load(os.path.join(self.sample_folder, filename))
         trainset = Molset(ids, element)
         count = trainset.count_atoms(element)
         if count < self.samples:
@@ -63,13 +64,20 @@ class BatchTrainer():
         """Harvests datasets from the CSD for each element."""
         self.Table[start:end].index.map(self.harvest)
     
-    def train(self, element=None, filename=None):
+    def train(self, element, filename=None):
         """Trains the neural network given by self.NN, attempting to use the 
         given number of samples of the given element from the CSD. If too few
         samples are found, returns False."""
-        trainset = Molset(self.samples, element, self.max)
+        
+        # Acquiring the training data.
+        if filename is None:
+            trainset = Molset(self.samples, element, self.max)
+        else:
+            trainset = self.recover(element, filename)
+        
         trainset.prepare_data(element, self.range)
         
+        # Training.
         try:
             finalsize = len(trainset.X)
             if finalsize < 10:
@@ -98,9 +106,31 @@ class BatchTrainer():
                     % element)
             return (np.nan, finalsize)
         
-    def train_all(self, filename):
+    def train_all(self, outfile):
+        """Generate new data for all elements of the periodic table and train
+        the NN, generating accuracy values and the number of samples."""
         outputs =  pd.DataFrame(self.Table.index.map(self.train).tolist(), 
-                                    columns=['Accuracy', 'Samples'],
-                                    index=self.Table.index)
-        file = filename + '.csv'
-        outputs.to_csv(path_or_buf=file)
+                                columns=['Accuracy', 'Samples'],
+                                index=self.Table.index)
+        
+    
+    def train_on_data(self, outfile):
+        """Train the NN using existing data, generating accuracy values and 
+        number of samples."""
+        outputs =  pd.DataFrame(np.nan, 
+                                columns=['Accuracy', 'Samples'],
+                                index=self.Table.index)
+                                
+        path = self.sample_folder
+        files = (file for file in os.listdir(path)
+                    if os.path.isfile(os.path.join(path, file)))
+        for file in files:
+            print('Loading ' + file)
+            parts = re.split('_|\.', file)
+            if parts[1].isdigit():
+                data = self.train(parts[0], file)
+                outputs.set_value(parts[0], 'Accuracy', round(data[0], 3))
+                outputs.set_value(parts[0], 'Samples', data[1])
+        
+        outfile = outfile + '.csv'
+        outputs.to_csv(path_or_buf=outfile)

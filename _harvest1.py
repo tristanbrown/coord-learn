@@ -4,4 +4,4 @@ A = BatchTrainer(sample_size=300, max=100000)
 # A.train('H')
 # A.harvest('C')
 
-A.harvest_all(start='Be', end='Mn')
+A.harvest_all(start='Cf', end='Lr')
