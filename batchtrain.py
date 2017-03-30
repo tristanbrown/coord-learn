@@ -63,7 +63,7 @@ class BatchTrainer():
         """Harvests datasets from the CSD for each element."""
         self.Table[start:end].index.map(self.harvest)
     
-    def train(self, element):
+    def train(self, element=None, filename=None):
         """Trains the neural network given by self.NN, attempting to use the 
         given number of samples of the given element from the CSD. If too few
         samples are found, returns False."""

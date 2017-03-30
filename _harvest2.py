@@ -1,7 +1,7 @@
 from batchtrain import *
 
-A = BatchTrainer(sample_size=300, max=25000)
+A = BatchTrainer(sample_size=300, max=100000)
 # A.train('H')
 # A.harvest('C')
 
-A.harvest_all(start='Fe', end='Xe')
+A.harvest_all(start='Ga', end='Xe')
