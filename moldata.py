@@ -136,6 +136,7 @@ class Molset():
         try:
             for id in self.ids:
                 amol = Mol(id)
+                amol.normalise_labels()
                 self.mols[amol.identifier] = amol
         except TypeError:
             self.count = self.ids
@@ -195,6 +196,10 @@ class Molset():
         """Gives the string identifiers corresponding to CSD entries for the 
         Molset."""
         return self.mols.keys()
+    
+    def count_atoms(self, elem):
+        """Counts the atom instances of a specific element in the Molset."""
+        return sum(mol.element_count(elem) for mol in self.mols.values())
     
     def center_all(self):
         """Use to re-center all Mols."""

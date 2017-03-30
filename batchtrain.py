@@ -29,6 +29,7 @@ class BatchTrainer():
         self.range = closest_atoms
         self.max = max
         self.split = test_split
+        self.sample_folder = 'samples'
         
         self.NN = Perceptron(n_iter=iter, eta0=0.1, random_state=0)
         
@@ -36,16 +37,31 @@ class BatchTrainer():
         """Generates and saves a list of CSD identifiers that will give
         the correct number of samples. 
         """
-        folder = 'samples/'
-        path = folder + element + '_'
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        path = self.sample_folder + '/' + element + '_'
+        if not os.path.exists(self.sample_folder):
+            os.makedirs(self.sample_folder)
         temppath = path + str(self.samples) + 'temp'
         trainset = Molset(self.samples, element, self.max,
                             savename=temppath)
+        savename = path + str(trainset.count)
+        trainset.saveset(savename)
+        print('Saved the following CSD entries to /' + savename + '.npy')
         print(trainset.labels)
-        trainset.saveset(path + str(trainset.count))
         os.remove(temppath + '.npy')
+    
+    def recover(self, element, savename):
+        ids = np.load(self.sample_folder + '/' + savename + '.npy')
+        trainset = Molset(ids, element)
+        count = trainset.count_atoms(element)
+        if count < self.samples:
+            trainset.count = count
+        else:
+            trainset.count = self.samples
+        return trainset
+    
+    def harvest_all(self, start='H', end='Lr'):
+        """Harvests datasets from the CSD for each element."""
+        self.Table[start:end].index.map(self.harvest)
     
     def train(self, element):
         """Trains the neural network given by self.NN, attempting to use the 
