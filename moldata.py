@@ -240,7 +240,7 @@ class Molset():
         self.X = np.array(_X)
         self.y = np.array(_y)
         try:
-            self.X.resize((self.count,60))
+            self.X.resize((self.count, 3 * n_closest))
             self.y.resize((self.count))
         except:
             pass
